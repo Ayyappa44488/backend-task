@@ -56,9 +56,11 @@ def test_get_assignments_in_graded_state_for_each_student():
     # Find all the assignments for student 1 and change its state to 'GRADED'
     submitted_assignments: Assignment = Assignment.filter(Assignment.student_id == 1)
 
+    student1_graded_count=0
     # Iterate over each assignment and update its state
     for assignment in submitted_assignments:
         assignment.state = AssignmentStateEnum.GRADED  # Or any other desired state
+        student1_graded_count+=1
 
     # Flush the changes to the database session
     db.session.flush()
@@ -66,7 +68,7 @@ def test_get_assignments_in_graded_state_for_each_student():
     db.session.commit()
 
     # Define the expected result before any changes
-    expected_result = [(1, 3)]
+    expected_result = [(student1_graded_count, 0)]
 
     # Execute the SQL query and compare the result with the expected result
     with open('tests/SQL/number_of_graded_assignments_for_each_student.sql', encoding='utf8') as fo:

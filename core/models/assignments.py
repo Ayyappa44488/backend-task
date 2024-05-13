@@ -5,7 +5,7 @@ from core.libs import helpers, assertions
 from core.models.teachers import Teacher
 from core.models.students import Student
 from sqlalchemy.types import Enum as BaseEnum
-
+from core.libs.exceptions import FyleError
 
 class GradeEnum(str, enum.Enum):
     A = 'A'
@@ -65,8 +65,11 @@ class Assignment(db.Model):
         assertions.assert_found(assignment, 'No assignment with this id was found')
         assertions.assert_valid(assignment.student_id == auth_principal.student_id, 'This assignment belongs to some other student')
         assertions.assert_valid(assignment.content is not None, 'assignment with empty content cannot be submitted')
+        if assignment.state == AssignmentStateEnum.SUBMITTED or assignment.state == AssignmentStateEnum.GRADED:
+            raise FyleError(status_code=400,message='only a draft assignment can be submitted')
 
         assignment.teacher_id = teacher_id
+        assignment.state = AssignmentStateEnum.SUBMITTED
         db.session.flush()
 
         return assignment
@@ -77,6 +80,12 @@ class Assignment(db.Model):
         assignment = Assignment.get_by_id(_id)
         assertions.assert_found(assignment, 'No assignment with this id was found')
         assertions.assert_valid(grade is not None, 'assignment with empty grade cannot be graded')
+        if auth_principal.principal_id is None:
+            if assignment.teacher_id != auth_principal.teacher_id or assignment.state==AssignmentStateEnum.DRAFT:
+                raise FyleError(status_code=400,message='This assignment was not submitted to you')
+        else:
+            if assignment.state==AssignmentStateEnum.DRAFT:
+                raise FyleError(status_code=400,message='This assignment was not submitted to you')
 
         assignment.grade = grade
         assignment.state = AssignmentStateEnum.GRADED
@@ -89,5 +98,9 @@ class Assignment(db.Model):
         return cls.filter(cls.student_id == student_id).all()
 
     @classmethod
-    def get_assignments_by_teacher(cls):
-        return cls.query.all()
+    def get_assignments_by_teacher(cls, teacher_id):
+        return cls.filter(cls.teacher_id == teacher_id).all()
+
+    @classmethod
+    def get_assignments_submitted(cls):
+        return cls.filter(cls.state in ['GRADED','SUBMITTED']).all()
