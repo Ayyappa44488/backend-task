@@ -57,6 +57,23 @@ def test_post_assignment_student_1(client, h_student_1):
     assert data['teacher_id'] is None
 
 
+def test_edit_draft_assignment(client, h_student_1):
+    response = client.post(
+        '/student/assignments',
+        headers=h_student_1,
+        json={
+            'content': 'ABCD TESTPOST EDIT',
+            'id': 2
+        })
+
+    assert response.status_code == 200
+
+    data = response.json['data']
+    assert data['content'] == 'ABCD TESTPOST EDIT'
+    assert data['state'] == 'DRAFT'
+    assert data['teacher_id'] is None
+
+
 def test_submit_assignment_student_1(client, h_student_1):
     response = client.post(
         '/student/assignments/submit',
@@ -72,6 +89,18 @@ def test_submit_assignment_student_1(client, h_student_1):
     assert data['student_id'] == 1
     assert data['state'] == 'SUBMITTED'
     assert data['teacher_id'] == 2
+
+
+def test_edit_submitted_assignment(client, h_student_1):
+    response = client.post(
+        '/student/assignments',
+        headers=h_student_1,
+        json={
+            'content': 'ABCD TESTPOST EDIT',
+            'id': 2
+        })
+
+    assert response.status_code == 400
 
 
 def test_assignment_resubmit_error(client, h_student_1):
