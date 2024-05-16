@@ -1,0 +1,9 @@
+#For building the docker image.
+docker-compose up
+#After running the command the application is running at localhost:5000.
+
+#I had also pushed the image to the Docker hub.You can directly pull the image from the docker hub using the command
+docker pull ayyappa44488/fyle-assignment
+#To run the application you can use
+docker run -p 5000:7755 ayyappa44488/fyle-assignment
+#After running the command the application is running at localhost:5000.
