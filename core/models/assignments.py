@@ -84,7 +84,7 @@ class Assignment(db.Model):
                 raise FyleError(status_code=400,message='This assignment was not submitted to you')
         else:
             if assignment.state==AssignmentStateEnum.DRAFT:
-                raise FyleError(status_code=400,message='This assignment was not submitted to you')
+                raise FyleError(status_code=400,message='This assignment was in draft state and cannot be graded')
 
         assignment.grade = grade
         assignment.state = AssignmentStateEnum.GRADED
